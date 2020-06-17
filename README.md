@@ -1,6 +1,6 @@
 # scraping
 
-image scrayping from yahoo image search engine
+image scraping from yahoo image search engine
 
 検索語を保存したファイルを読み込みスクレイピングします
 
