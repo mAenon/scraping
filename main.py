@@ -36,7 +36,7 @@ def get_sources(img_name="", save_limit=1, start=0):
 
     # http通信では一回に20枚しか取れないので，繰り返し通信する
     # start で　取り初めの枚数を指定
-    for start in range(0, save_limit+19, 20):
+    for start in range(0, save_limit + 19, 20):
         time.sleep(1)
         url = "https://search.yahoo.co.jp/image/search"
         # html 取得
@@ -55,13 +55,15 @@ def get_sources(img_name="", save_limit=1, start=0):
             # limit つけると死ぬ
             for imgUrl in imgs[:-1]:
                 sources.append(imgUrl.get("src"))
-                if len(sources) > save_limit:
+                if len(sources) >= save_limit:
                     return sources
         else:
             imgs = soup.find_all("img")
             for imgUrl in imgs[:-1]:
                 # imgs[0]はよくわからんgifだったので無視しました．
                 sources.append(imgUrl.get("src"))
+                if len(sources) >= save_limit:
+                    return sources
 
     return sources
 
@@ -79,7 +81,13 @@ def get_img_from_url(url=None):
         # f に 画像urlより取得したバイナリデータのオブジェクトを格納，.openで開く
         file = io.BytesIO(requests.get(url).content)
         img = Image.open(file)
-    except FileNotFoundError or ValueError or PIL.UnidentifiedImageError:
+    except FileNotFoundError:
+        print("img load error", file=sys.stderr)
+        return -1
+    except ValueError:
+        print("img load error", file=sys.stderr)
+        return -1
+    except PIL.UnidentifiedImageError:
         print("img load error", file=sys.stderr)
         return -1
 
@@ -112,10 +120,12 @@ def img_save(img=None, folder_name=datetime.datetime.now().strftime("%Y-%m-%d[%H
         img.save(folder_path + "/" + str(_imgNum) + ".jpg")
         if logs is True:
             print("save : " + folder_path + "/" + str(_imgNum) + ".jpg")
-    except ValueError or IOError:
+    except ValueError:
         print("img save error", file=sys.stderr)
         return -1
-
+    except IOError:
+        print("img save error", file=sys.stderr)
+        return -1
     return 0
 
 
@@ -181,20 +191,18 @@ if __name__ == "__main__":
     # 検索ファイル名指定, 改行コード一応削除
     # NOTE logs = Falseならいらんかも？ -> 出力が
     # TODO
-    print("検索内容ファイル名を指定 : ", end="")
-    filename = input().rstrip("\n")
+    filename = input("検索内容ファイル名を指定 :").rstrip("\n")
 
     # 各画像の最大保存枚数を指定
     # NOTE logs = Falseならいらんかも？ -> 出力が
     try:
-        print("取得画像数を指定 : ", end="")
-        limit = int(input())
+        limit = int(input("取得画像数を指定 :"))
     except TypeError:
         limit = 1
 
     # 検索内容ファイルの中身を配列に格納
     path = "./data/" + filename
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         # with open() as f : について
         # try resource と同じ感じでここを抜けると自動でfが閉じられる
         try:
