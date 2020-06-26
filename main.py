@@ -201,7 +201,7 @@ if __name__ == "__main__":
         limit = 1
 
     # 検索内容ファイルの中身を配列に格納
-    path = "./data/" + filename
+    path = filename
     with open(path, "r", encoding="utf-8") as f:
         # with open() as f : について
         # try resource と同じ感じでここを抜けると自動でfが閉じられる
